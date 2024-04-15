@@ -215,6 +215,8 @@ ls_FormData[14]="123456789Z"
 If FileExists(ls_PdfFileOut) Then FileDelete(ls_PdfFileOut)
 	 
 ls_result = ln_pdf.of_FillFormFields(ls_PdfFile, ls_PdfFileOut,  ls_FormFields[], ls_FormData[])
+
+if isnull(ls_result) then ls_result=""
 		
 //Checks the result
 If ln_pdf.il_ErrorType < 0 or ls_result<>"" Then
@@ -256,6 +258,8 @@ ln_pdf = CREATE nvo_pdffill
 ls_PdfFile = sle_file.text
 
 ls_result = ln_pdf.of_getformfields(ls_PdfFile, ref ls_FormFields[])
+
+if isnull(ls_result) then ls_result=""
 		
 //Checks the result
 If ln_pdf.il_ErrorType < 0 or ls_result<>"" Then
