@@ -68,6 +68,7 @@ end variables
 
 forward prototypes
 public subroutine wf_version (statictext ast_version, statictext ast_patform)
+public function boolean wf_control_dependencias ()
 end prototypes
 
 public subroutine wf_version (statictext ast_version, statictext ast_patform);String ls_version, ls_platform
@@ -90,6 +91,37 @@ ast_version.text=ls_version
 ast_patform.text=ls_platform
 
 end subroutine
+
+public function boolean wf_control_dependencias ();// --------------------------------------------------------------------------------------
+// SCRIPT:     wf_control_dependencias
+//
+// PURPOSE:    Comprueba que el ensamblado principal y todas sus dependencias .NET
+//             (itext7 9.x + Microsoft.Extensions + System.Security) estan presentes
+//             en DotNet\PdfFillFormFields\ ANTES de usar la clase importada con el .NET
+//             DLL Importer. Da un mensaje claro indicando el fichero que falta, en vez
+//             del error generico de carga del assembly.
+//             La lista se toma de PdfFillFormFields.deps.json (DLLs de runtime).
+//
+// RETURN:     True = estan todas, False = falta alguna (ya avisada por MessageBox)
+// --------------------------------------------------------------------------------------
+String ls_dir, ls_archivos[]
+Int li_idx, li_total
+
+ls_dir = gs_dir + "DotNet\PdfFillFormFields\"
+
+ls_archivos[] = {"PdfFillFormFields.dll", "itext.barcodes.dll", "itext.bouncy-castle-connector.dll", "itext.commons.dll", "itext.forms.dll", "itext.io.dll", "itext.kernel.dll", "itext.layout.dll", "itext.pdfa.dll", "itext.pdfua.dll", "itext.sign.dll", "itext.styledxmlparser.dll", "itext.svg.dll", "Microsoft.DotNet.PlatformAbstractions.dll", "Microsoft.Extensions.DependencyInjection.Abstractions.dll", "Microsoft.Extensions.DependencyInjection.dll", "Microsoft.Extensions.DependencyModel.dll", "Microsoft.Extensions.Logging.Abstractions.dll", "Microsoft.Extensions.Logging.dll", "Microsoft.Extensions.Options.dll", "Microsoft.Extensions.Primitives.dll", "System.Security.Cryptography.Pkcs.dll", "System.Security.Cryptography.Xml.dll"}
+
+li_total = UpperBound(ls_archivos[])
+
+FOR li_idx = 1 TO li_total
+	IF NOT FileExists(ls_dir + ls_archivos[li_idx]) THEN
+		MessageBox("Atención", "¡ Falta la dependencia .NET requerida !~r~n~r~n" + ls_dir + ls_archivos[li_idx], Exclamation!)
+		RETURN FALSE
+	END IF
+NEXT
+
+RETURN TRUE
+end function
 
 on w_main.create
 this.cb_fill=create cb_fill
@@ -157,6 +189,8 @@ String ls_FormFields[], ls_FormData[]
 String ls_PdfFile, ls_PdfFileOut, ls_error, ls_result, ls_format
 Integer li_FormatLen
 Long ll_Field, ll_TotalFileds
+
+If Not wf_control_dependencias() Then Return
 
 ln_pdf = CREATE nvo_pdffill
 
@@ -251,6 +285,8 @@ String ls_formfields[]
 String ls_PdfFile, ls_error, ls_msg
 Long ll_Field, ll_TotalFileds
 String ls_result
+
+If Not wf_control_dependencias() Then Return
 
 ln_pdf = CREATE nvo_pdffill
 
